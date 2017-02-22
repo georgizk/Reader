@@ -1,0 +1,21 @@
+﻿<Page
+    x:Class="Reader.Reader"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Reader"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="White">
+        <ScrollViewer x:Name="imageContainer" ZoomMode="Enabled" VerticalScrollMode="Enabled" HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" PointerPressed="mangaImage_PointerPressed" Tapped="mangaImage_Tapped">
+            <Image x:Name="mangaImage" Stretch="None"
+                ManipulationMode="TranslateX,TranslateY,Scale" 
+                ManipulationDelta="mangaImage_ManipulationDelta" ManipulationCompleted="mangaImage_ManipulationCompleted"
+                DoubleTapped="mangaImage_DoubleTapped"/>
+        </ScrollViewer>
+
+        <Slider x:Name="pageSlider" Margin="20" ValueChanged="sliderValueChanged" KeyUp="pageSlider_KeyUp" PointerCaptureLost="pageSlider_PointerCaptureLost"  StepFrequency="1" Height="40" VerticalAlignment="Top" BorderThickness="0" Opacity="0.6" Background="Gray"></Slider>
+
+    </Grid>
+</Page>
