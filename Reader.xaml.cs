@@ -373,7 +373,7 @@ namespace Reader
             var xRatio = src.PixelWidth / imageScroll.ActualWidth;
             var yRatio = src.PixelHeight / imageScroll.ActualHeight;
             var zoomFactor = Math.Max(xRatio, yRatio);
-            if (zoomFactor != 0)
+            if (zoomFactor > 1)
             {
                 zoomFactor = 1 / zoomFactor;
                 var cv = imageScroll.ChangeView(0, 0, (float)zoomFactor, true);
