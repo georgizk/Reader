@@ -7,12 +7,19 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <SolidColorBrush x:Key="TransparentMagenta" Color="#FFCB136F" Opacity="0.5" />
+    </Page.Resources>
+
     <Grid Background="White" x:Name="containerGrid" Tapped="mangaImage_Tapped">
         <ScrollViewer HorizontalScrollMode="Enabled" VerticalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" ZoomMode="Enabled" x:Name="imageScroll">
             <Image x:Name="mangaImage" Stretch="None" DoubleTapped="mangaImage_DoubleTapped"/>
         </ScrollViewer>
-        
-        <Slider x:Name="pageSlider" Margin="20" ValueChanged="sliderValueChanged" KeyUp="pageSlider_KeyUp" PointerCaptureLost="pageSlider_PointerCaptureLost"  StepFrequency="1" Height="40" VerticalAlignment="Top" BorderThickness="0" Opacity="0.6"></Slider>
-
+        <StackPanel x:Name="statusOverlay" Background="{StaticResource TransparentMagenta}" Visibility="Collapsed">
+            <Slider x:Name="pageSlider" Margin="20 20 20 0" ValueChanged="sliderValueChanged" StepFrequency="1" Height="40" VerticalAlignment="Top" BorderThickness="0"></Slider>
+            <TextBlock x:Name="mangaName" Text="manga" Foreground="White" FontSize="32" Margin="20 0 6 0" FontWeight="bold"></TextBlock>
+            <TextBlock x:Name="pageName" Text="page name" Foreground="White" FontSize="24" Margin="20 0 6 0"></TextBlock>
+            <TextBlock x:Name="pageNumber" Text="page" Foreground="White" FontSize="24" Margin="20 0 6 0"></TextBlock>
+        </StackPanel>
     </Grid>
 </Page>
