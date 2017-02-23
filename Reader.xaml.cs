@@ -252,6 +252,16 @@ namespace Reader
             }
         }
 
+        private ThreadPoolTimer _timerDisplayPage;
+        private void cancelDisplayPageTimer()
+        {
+            if (_timerDisplayPage != null)
+            {
+                _timerDisplayPage.Cancel();
+                _timerDisplayPage = null;
+            }
+        }
+
         private IAsyncAction showSlider()
         {
             return CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
@@ -317,9 +327,9 @@ namespace Reader
 
         private void displayPageAfterDelay(int delay, int page)
         {
-            cancelTimer();
+            cancelDisplayPageTimer();
             TimeSpan dt = TimeSpan.FromMilliseconds(delay);
-            _timer = ThreadPoolTimer.CreateTimer(async (source) =>
+            _timerDisplayPage = ThreadPoolTimer.CreateTimer(async (source) =>
             {
                 await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
                 CoreDispatcherPriority.High,
@@ -333,6 +343,17 @@ namespace Reader
 
         private void mangaImage_Tapped(object sender, TappedRoutedEventArgs e)
         {
+            if (statusOverlay.Visibility == Visibility.Visible)
+            {
+                // don't do anything if tapped over slider
+                var point_slider = e.GetPosition(pageSlider);
+                if (point_slider.X >= 0 && point_slider.X <= pageSlider.ActualWidth &&
+                    point_slider.Y >= 0 && point_slider.Y <= pageSlider.ActualHeight)
+                {
+                    return;
+                }
+            }
+            
             // the code below makes it so that relativePosition will be < 0.2 if
             // click point is to the left of the first 20% of the image, or within
             // the first 20% of the container (similar for the latest 20%)
