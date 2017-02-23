@@ -7,8 +7,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Background="White" Tapped="mangaImage_Tapped">
-        <Image x:Name="mangaImage"/>
+    <Grid Background="White" x:Name="containerGrid" Tapped="mangaImage_Tapped">
+        <ScrollViewer HorizontalScrollMode="Enabled" VerticalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" ZoomMode="Enabled" x:Name="imageScroll">
+            <Image x:Name="mangaImage" Stretch="None" DoubleTapped="mangaImage_DoubleTapped"/>
+        </ScrollViewer>
+        
         <Slider x:Name="pageSlider" Margin="20" ValueChanged="sliderValueChanged" KeyUp="pageSlider_KeyUp" PointerCaptureLost="pageSlider_PointerCaptureLost"  StepFrequency="1" Height="40" VerticalAlignment="Top" BorderThickness="0" Opacity="0.6"></Slider>
 
     </Grid>

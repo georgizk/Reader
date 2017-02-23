@@ -46,8 +46,9 @@ namespace Reader
                         var page = e.NewItems[e.NewStartingIndex - currentPage] as MangaPage;
                         var bmp = page.Source;
                         var src = await loadImage(bmp);
-                        mangaImage.Source = src;
+                        mangaImage.Source = src;                        
                         mangaImage.Opacity = 1;
+                        fitImage(page);
                     }
                     catch (OperationCanceledException)
                     {
@@ -118,6 +119,7 @@ namespace Reader
                 if (page != currentPage)
                 {
                     notifyRangesChanged(page);
+                    mangaImage.Opacity = 0;
                 }
                 currentPage = page;
                 pageSlider.Value = (currentPage + 1);
@@ -132,8 +134,9 @@ namespace Reader
                     if (pg.Source != null)
                     {
                         var src = await loadImage(pg.Source);
-                        mangaImage.Source = src;
+                        mangaImage.Source = src;                       
                         mangaImage.Opacity = 1;
+                        fitImage(pg);
                     }
                 }
                 catch (OperationCanceledException)
@@ -144,25 +147,35 @@ namespace Reader
             return page;
         }
 
-        private async void pageUp()
+        private IAsyncAction pageUp()
         {
-            if (currentPage < pages.Count - 1)
-            {
-                await displayPage(currentPage + 1);
-                hideSliderAfterDelay(5000);
-            }
+            return CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                CoreDispatcherPriority.High,
+                new DispatchedHandler(async () =>
+                {
+                    if (currentPage < pages.Count - 1)
+                    {
+                        await displayPage(currentPage + 1);
+                        hideSliderAfterDelay(5000);
+                    }
+                }));
         }
 
-        private async void pageDown()
+        private IAsyncAction pageDown()
         {
-            if (currentPage > 0)
-            {
-                await displayPage(currentPage - 1);
-                hideSliderAfterDelay(5000);
-            }
+            return CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(
+                CoreDispatcherPriority.High,
+                new DispatchedHandler(async () =>
+                {
+                    if (currentPage > 0)
+                    {
+                        await displayPage(currentPage - 1);
+                        hideSliderAfterDelay(5000);
+                    }
+                }));
         }
 
-        private void keyPressHandler(object sender, KeyEventArgs args)
+        private async void keyPressHandler(object sender, KeyEventArgs args)
         {
             if (pageSlider.Visibility != Visibility.Collapsed && pageSlider.FocusState != FocusState.Unfocused)
             {
@@ -170,12 +183,12 @@ namespace Reader
             }
             if (args.VirtualKey == Windows.System.VirtualKey.Right)
             {
-                pageUp();
+                await pageUp();
             }
 
             if (args.VirtualKey == Windows.System.VirtualKey.Left)
             {
-                pageDown();
+                await pageDown();
             }
         }
 
@@ -199,16 +212,17 @@ namespace Reader
             manga = e.Parameter as Manga;
             pages.SetDataSource(manga.Pages);
 
+            currentPage = -1;
             var lastReadPage = manga.LastReadPageIdx;
-            currentPage = 0;
+            var initialPage = 0;
             pageSlider.Minimum = 1;
             pageSlider.Maximum = pages.Count;
             if (lastReadPage > 0 && lastReadPage < pages.Count)
             {
-                currentPage = lastReadPage;
+                initialPage = lastReadPage;
             }
-            await displayPage(currentPage);
-            hideSliderAfterDelay(2000);
+            await displayPage(initialPage);
+            hideSliderAfterDelay(500);
 
             base.OnNavigatedTo(e);
             Window.Current.CoreWindow.KeyDown += keyPressHandler;
@@ -286,44 +300,101 @@ namespace Reader
             }, dt);
         }
 
+        private void pageUpAfterDelay(int delay)
+        {
+            cancelTimer();
+            TimeSpan dt = TimeSpan.FromMilliseconds(delay);
+            _timer = ThreadPoolTimer.CreateTimer(async (source) =>
+            {
+                await pageUp();
+            }, dt);
+        }
+
+        private void pageDownAfterDelay(int delay)
+        {
+            cancelTimer();
+            TimeSpan dt = TimeSpan.FromMilliseconds(delay);
+            _timer = ThreadPoolTimer.CreateTimer(async (source) =>
+            {
+                await pageDown();
+            }, dt);
+        }
+
         private void mangaImage_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            var point_image = e.GetPosition(mangaImage);
+            var point_image = e.GetPosition(containerGrid);
             if (mangaImage.ActualWidth == 0 || mangaImage.ActualHeight == 0)
             {
                 return;
             }
 
             var position = point_image.X;
-            var max = mangaImage.ActualWidth;
+            var max = containerGrid.ActualWidth;
 
             var relativeX = position / max;
             double latestPressLocationX = relativeX;
 
             position = point_image.Y;
-            max = mangaImage.ActualHeight;
+            max = containerGrid.ActualHeight;
 
             var relativeY = position / max;
             double latestPressLocationY = relativeY;
 
             if (latestPressLocationX < 0.2)
             {
-                pageDown();
+                pageDownAfterDelay(200);
             }
             else if (latestPressLocationX > 0.8)
             {
-                pageUp();
+                pageUpAfterDelay(200);
             }
             else
             {
                 if (pageSlider.Visibility != Visibility.Collapsed)
                 {
-                    hideSliderAfterDelay(100);
+                    hideSliderAfterDelay(200);
                 }
                 else
                 {
-                    showSliderAfterDelay(100);
+                    showSliderAfterDelay(200);
                 }
+            }
+        }
+
+        private void fitImage(MangaPage page)
+        {
+            if (imageScroll.ActualWidth == 0 || imageScroll.ActualHeight == 0 || page.Source == null)
+            {
+                return;
+            }
+            var src = page.Source as SoftwareBitmap;
+
+            // zoom such that image fits into view
+            var xRatio = src.PixelWidth / imageScroll.ActualWidth;
+            var yRatio = src.PixelHeight / imageScroll.ActualHeight;
+            var zoomFactor = Math.Max(xRatio, yRatio);
+            if (zoomFactor != 0)
+            {
+                zoomFactor = 1 / zoomFactor;
+                var cv = imageScroll.ChangeView(0, 0, (float)zoomFactor, true);
+            }            
+        }
+
+        private void mangaImage_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+        {
+            cancelTimer();
+            double sf = imageScroll.ZoomFactor;
+            if (Math.Abs(sf - 1) > 0.01)
+            {
+                var position = e.GetPosition(mangaImage);
+                var positionScroll = e.GetPosition(imageScroll);
+                var offsetX = Math.Max(0, position.X - positionScroll.X);
+                var offsetY = Math.Max(0, position.Y - positionScroll.Y);
+                var cv = imageScroll.ChangeView(offsetX, offsetY, 1, true);
+            }
+            else
+            {
+                fitImage(pages[currentPage]);
             }
         }
     }
