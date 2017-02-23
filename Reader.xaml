@@ -15,15 +15,11 @@
         <ScrollViewer HorizontalScrollMode="Enabled" VerticalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" ZoomMode="Enabled" x:Name="imageScroll">
             <Image x:Name="mangaImage" Stretch="None" DoubleTapped="mangaImage_DoubleTapped"/>
         </ScrollViewer>
-        <StackPanel x:Name="statusOverlay" Background="{StaticResource TransparentMagenta}" Visibility="Visible">
+        <StackPanel x:Name="statusOverlay" Background="{StaticResource TransparentMagenta}" Visibility="Collapsed">
             <Slider x:Name="pageSlider" Margin="20 20 20 0" ValueChanged="sliderValueChanged" StepFrequency="1" Height="40" VerticalAlignment="Top" BorderThickness="0"></Slider>
-            <!--<ScrollViewer HorizontalScrollMode="Enabled" VerticalScrollMode="Enabled" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" >
-                <StackPanel>-->
-                    <TextBlock x:Name="mangaName" Text="manga" Foreground="White" FontSize="20" Margin="20 0 6 0" FontWeight="bold" TextWrapping="Wrap"></TextBlock>
+            <TextBlock x:Name="mangaName" Text="manga" Foreground="White" FontSize="20" Margin="20 0 6 0" FontWeight="bold" TextWrapping="Wrap"></TextBlock>
             <TextBlock x:Name="pageName" Text="page name" Foreground="White" FontSize="16" Margin="20 0 6 0" TextWrapping="Wrap"></TextBlock>
             <TextBlock x:Name="pageNumber" Text="page" Foreground="White" FontSize="16" Margin="20 0 6 0" TextWrapping="Wrap"></TextBlock>
-                <!--</StackPanel>
-            </ScrollViewer>-->
         </StackPanel>
     </Grid>
 </Page>
