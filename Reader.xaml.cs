@@ -407,9 +407,15 @@ namespace Reader
 
         private async void fitImage(MangaPage page)
         {
+            var zf = getZoomFactorToFitImage(page);
+            await changeView(0, 0, zf);
+        }
+
+        private float getZoomFactorToFitImage(MangaPage page)
+        {
             if (imageScroll.ActualWidth == 0 || imageScroll.ActualHeight == 0 || page.Source == null)
             {
-                return;
+                return 1;
             }
             var src = page.Source as SoftwareBitmap;
 
@@ -420,19 +426,25 @@ namespace Reader
             if (zoomFactor > 1)
             {
                 zoomFactor = 1 / zoomFactor;
-                await changeView(0, 0, (float)zoomFactor);
-            }         
+                return (float)zoomFactor;
+            }
             else
             {
-                await changeView(0, 0, 1);
-            }   
+                return 1;
+            }
         }
 
         private async void mangaImage_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
         {
+            if (currentPage < 0 || currentPage >= pages.Count)
+            {
+                return;
+            }
             cancelTimer();
-            double sf = imageScroll.ZoomFactor;
-            if (Math.Abs(sf - 1) > 0.01)
+            var zf = getZoomFactorToFitImage(pages[currentPage]);
+            float currentZf = imageScroll.ZoomFactor;
+            // if we are already at the optimal resolution, zoom in
+            if (Math.Abs(currentZf - zf) < 0.01)
             {
                 var position = e.GetPosition(mangaImage);
                 var positionScroll = e.GetPosition(imageScroll);
@@ -440,9 +452,10 @@ namespace Reader
                 var offsetY = Math.Max(0, position.Y - positionScroll.Y);
                 await changeView(offsetX, offsetY, 1);
             }
+            // otherwise, zoom to the optimal resolution
             else
             {
-                fitImage(pages[currentPage]);
+                await changeView(0, 0, zf);
             }
         }
     }
